@@ -17,6 +17,7 @@ class ChatApp extends StatelessWidget {
           brightness: Brightness.light,
           primarySwatch: Colors.indigo,
           scaffoldBackgroundColor: Colors.grey.shade50,
+          fontFamily: 'Roboto',
           inputDecorationTheme: const InputDecorationTheme(
             border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),

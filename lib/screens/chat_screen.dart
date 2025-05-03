@@ -13,73 +13,88 @@ class ChatScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ChatBot', style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text('ChatBot', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         centerTitle: true,
-        elevation: 2,
+        elevation: 4,
+        backgroundColor: Colors.deepPurple,
       ),
-      body: Row(
-        children: [
-          Container(
-            width: 250,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              border: const Border(right: BorderSide(color: Colors.grey)),
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text('Chats', style: Theme.of(context).textTheme.titleMedium),
-                ),
-                Expanded(
-                  child: ListView(
-                    children: chatProvider.chatIds.map((id) {
-                      return ListTile(
-                        title: Text(id, style: const TextStyle(fontSize: 14)),
-                        selected: chatProvider.currentChatId == id,
-                        selectedTileColor: Colors.indigo.shade100,
-                        onTap: () => chatProvider.switchChat(id),
-                      );
-                    }).toList(),
+      drawer: Drawer(
+        child: Container(
+          color: Colors.deepPurple.shade50,
+          child: Column(
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.deepPurple),
+                child: Center(
+                  child: Text(
+                    'Chat History',
+                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
-              ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final newId = "chat_${DateTime.now().millisecondsSinceEpoch}";
+                    chatProvider.switchChat(newId);
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text("New Chat"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    minimumSize: const Size.fromHeight(40),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: chatProvider.chatIds.map((id) {
+                    return ListTile(
+                      leading: const Icon(Icons.chat_bubble_outline, color: Colors.deepPurple),
+                      title: Text(id, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                      tileColor: chatProvider.currentChatId == id
+                          ? Colors.deepPurple.shade100
+                          : Colors.transparent,
+                      onTap: () {
+                        Navigator.pop(context);
+                        chatProvider.switchChat(id);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView.builder(
+                padding: const EdgeInsets.only(top: 20, bottom: 10),
+                itemCount: chatProvider.messages.length,
+                itemBuilder: (ctx, i) {
+                  return MessageBubble(
+                    text: chatProvider.messages[i].message,
+                    isUser: chatProvider.messages[i].isUser,
+                  );
+                },
+              ),
             ),
           ),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(top: 20, bottom: 10),
-                      itemCount: chatProvider.messages.length,
-                      itemBuilder: (ctx, i) {
-                        return MessageBubble(
-                          text: chatProvider.messages[i].message,
-                          isUser: chatProvider.messages[i].isUser,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: MessageInput(),
-                ),
-              ],
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            child: MessageInput(),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          final newId = "chat_${DateTime.now().millisecondsSinceEpoch}";
-          chatProvider.switchChat(newId);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text("New Chat"),
       ),
     );
   }
