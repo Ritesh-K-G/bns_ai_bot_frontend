@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/chat_message.dart';
+import '../services/api_services.dart';
 
 class ChatProvider with ChangeNotifier {
   final Map<String, List<ChatMessage>> _conversations = {
@@ -25,7 +26,8 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> sendMessage(String msg) async {
     addMessage(msg, true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    addMessage("Hi! This is a simulated response.", false);
+    final response = await ApiService.sendMessage(msg);
+    _conversations[_currentChatId]?.add(response);
+    notifyListeners();
   }
 }

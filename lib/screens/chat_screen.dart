@@ -3,9 +3,17 @@ import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
+import 'package:open_file/open_file.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({Key? key}) : super(key: key);
+
+  void _launchFile(String path) async {
+    final result = await OpenFile.open(path);
+    if (result.type != ResultType.done) {
+      debugPrint('Error opening file: ${result.message}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +90,42 @@ class ChatScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 20, bottom: 10),
                 itemCount: chatProvider.messages.length,
                 itemBuilder: (ctx, i) {
-                  return MessageBubble(
-                    text: chatProvider.messages[i].message,
-                    isUser: chatProvider.messages[i].isUser,
-                  );
+                  final message = chatProvider.messages[i];
+                  if (message.isUser) {
+                    return MessageBubble(
+                      text: message.message,
+                      isUser: true,
+                    );
+                  } else if (message.message.startsWith("file:")) {
+                    final fileUrl = message.message.substring(5);
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.insert_drive_file, color: Colors.deepPurple),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => _launchFile(fileUrl),
+                              child: Text("Open File", style: TextStyle(color: Colors.deepPurple.shade800)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return MessageBubble(
+                      text: message.message,
+                      isUser: false,
+                    );
+                  }
                 },
               ),
             ),
