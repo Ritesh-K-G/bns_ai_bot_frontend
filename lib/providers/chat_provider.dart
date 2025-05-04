@@ -4,7 +4,7 @@ import '../services/api_services.dart';
 
 class ChatProvider with ChangeNotifier {
   final Map<String, List<ChatMessage>> _conversations = {
-    'default': [],
+    'default': []
   };
 
   String _currentChatId = 'default';
@@ -28,20 +28,13 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> sendMessage(String msg) async {
     addMessage(msg, true);
-    _setLoading(true);
-    try {
-      final response = await ApiService.sendMessage(msg);
-      _conversations[_currentChatId]?.add(response);
-    } catch (e) {
-      _conversations[_currentChatId]?.add(
-        ChatMessage(message: "Error: ${e.toString()}", isUser: false),
-      );
-    }
-    _setLoading(false);
-  }
+    _isLoading = true;
+    notifyListeners();
 
-  void _setLoading(bool value) {
-    _isLoading = value;
+    final response = await ApiService.sendMessage(msg);
+
+    _isLoading = false;
+    _conversations[_currentChatId]?.add(response);
     notifyListeners();
   }
 }

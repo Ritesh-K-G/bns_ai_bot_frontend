@@ -5,6 +5,8 @@ import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
 import 'package:open_file/open_file.dart';
 
+import '../widgets/typing_indicator.dart';
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
 
@@ -14,6 +16,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _scrollController = ScrollController();
+  final TextEditingController _controller = TextEditingController();
 
   void _launchFile(String path) async {
     final result = await OpenFile.open(path);
@@ -49,6 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
+    final isLoading = chatProvider.isLoading;
 
     const scaffoldBackgroundColor = Color(0xFF121212);
     const appBarBackgroundColor = Color(0xFF1F1F1F);
@@ -84,7 +88,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 20.0, left: 16.0, bottom: 16.0),
+                  padding: const EdgeInsets.only(
+                      top: 20.0, left: 16.0, bottom: 16.0),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -98,16 +103,19 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 10.0),
                   child: InkWell(
                     onTap: () {
-                      final newId = "chat_${DateTime.now().millisecondsSinceEpoch}";
+                      final newId =
+                          "chat_${DateTime.now().millisecondsSinceEpoch}";
                       chatProvider.switchChat(newId);
                       Navigator.pop(context);
                     },
                     borderRadius: BorderRadius.circular(24),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
                       child: Row(
                         children: [
                           Icon(Icons.add, color: accentColor, size: 24),
@@ -139,7 +147,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 10.0),
                           child: Row(
                             children: [
                               Icon(Icons.chat_bubble_outline,
@@ -153,8 +162,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                     color: isSelected
                                         ? primaryTextColor.withOpacity(0.87)
                                         : secondaryTextColor.withOpacity(0.6),
-                                    fontWeight:
-                                    isSelected ? FontWeight.w500 : FontWeight.normal,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w500
+                                        : FontWeight.normal,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -171,11 +181,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
-                      Icon(Icons.settings_outlined, color: iconColor.withOpacity(0.6)),
+                      Icon(Icons.settings_outlined,
+                          color: iconColor.withOpacity(0.6)),
                       const SizedBox(width: 16),
                       Text(
                         'Settings',
-                        style: TextStyle(color: secondaryTextColor.withOpacity(0.8)),
+                        style: TextStyle(
+                            color: secondaryTextColor.withOpacity(0.8)),
                       ),
                     ],
                   ),
@@ -186,19 +198,24 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         body: Column(
           children: [
-            Expanded(
-              child: Container(
+            Expanded(child:
+                Consumer<ChatProvider>(builder: (context, chatProvider, _) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scrollToBottom();
+              });
+              return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: ListView.builder(
                   controller: _scrollController,
                   reverse: false,
                   padding: const EdgeInsets.only(top: 15, bottom: 10),
                   itemCount: chatProvider.messages.length +
-                      (chatProvider.isLoading ? 1 : 0), // Add one if loading
+                      (chatProvider.isLoading ? 1 : 0),
                   itemBuilder: (ctx, i) {
                     if (i < chatProvider.messages.length) {
                       final message = chatProvider.messages[i];
-                      if (message.isUser || !message.message.startsWith("file:")) {
+                      if (message.isUser ||
+                          !message.message.startsWith("file:")) {
                         return MessageBubble(
                           text: message.message,
                           isUser: message.isUser,
@@ -217,12 +234,15 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF303134),
                                     borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: const Color(0xFF4a4a50)),
+                                    border: Border.all(
+                                        color: const Color(0xFF4a4a50)),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.1),
@@ -243,7 +263,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               fileName,
@@ -277,24 +298,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       return const Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding:
-                          EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.grey),
-                            ),
-                          ),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12.0, horizontal: 20),
+                          child: TypingIndicator(),
                         ),
                       );
                     }
                   },
                 ),
-              ),
-            ),
+              );
+            })),
             const Padding(
               padding: EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 8.0),
               child: MessageInput(),
