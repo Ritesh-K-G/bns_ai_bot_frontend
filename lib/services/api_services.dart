@@ -36,7 +36,7 @@ class ApiService {
   static Future<io.File> _generateMockFile() async {
     final dir = await getTemporaryDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final file = io.File('${dir.path}/chat_$timestamp.pdf');
+    final file = io.File('${dir.path}/bns_report.pdf');
 
     final pdf = pw.Document();
     pdf.addPage(
