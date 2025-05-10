@@ -5,48 +5,50 @@ import 'package:path_provider/path_provider.dart';
 import '../models/chat_message.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:dio/dio.dart';
 
 class ApiService {
   static Future<ChatMessage> sendMessage(String message) async {
     await Future.delayed(const Duration(seconds: 1));
+    final Dio dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://bns-ai-assistant.onrender.com'
+    ));
 
-    final isFile = message.contains("file");
+    Response response = await dio.post('/query', data: {
+      "history": [],
+      "query": message
+    });
+
+    print(response);
+
+    final isFile = response.data['type'] == "scenario";
     if (isFile) {
       if (kIsWeb) {
-        // Web fallback
         return ChatMessage(
           message: 'file:web_mock_file.txt',
           isUser: false,
+          content: ''
         );
       } else {
-        final data = [
-          {
-            "chapter no.": 1,
-            "chapter title": "General Principles",
-            "section no.": 101,
-            "section title": "Definitions",
-            "description": "This section defines key legal terms.",
-            "justification": "Clarifies ambiguity in legal proceedings."
-          },
-          {
-            "chapter no.": 2,
-            "chapter title": "Offenses",
-            "section no.": 202,
-            "section title": "Fraud",
-            "description": "Defines what constitutes fraud under the code.",
-            "justification": "Ensures clarity for law enforcement and judiciary."
-          }
-        ];
-        final file = await _generateMockFile(data);
+        final results = response.data['results'];
+        final file = await _generateMockFile(List<Map<String, dynamic>>.from(results));
+        String content = "Predicted Sections: \n";
+        for (var section in results) {
+          content = content + section['Section Title'] + '\n';
+        }
         return ChatMessage(
-          message: 'file:${file.path}',
-          isUser: false,
+            message: 'file:${file.path}',
+            isUser: false,
+            content: content
         );
       }
-    } else {
+    }
+    else {
       return ChatMessage(
-        message: 'Thanks for your message! Here is a response.',
+        message: response.data['results'],
         isUser: false,
+        content: response.data['results']
       );
     }
   }
@@ -91,7 +93,7 @@ class ApiService {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Chapter ${entry["chapter no."]}: ${entry["chapter title"]}',
+                      'Chapter ${entry["Chapter Number"]}: ${entry["Chapter Name"]}',
                       style: pw.TextStyle(
                         fontSize: 16,
                         fontWeight: pw.FontWeight.bold,
@@ -100,7 +102,7 @@ class ApiService {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      'Section ${entry["section no."]}: ${entry["section title"]}',
+                      'Section ${entry["Section Number"]}: ${entry["Section Title"]}',
                       style: pw.TextStyle(
                         fontSize: 14,
                         fontWeight: pw.FontWeight.bold,
@@ -117,7 +119,7 @@ class ApiService {
                       ),
                     ),
                     pw.Text(
-                      entry["description"],
+                      entry["Section Description"],
                       style: const pw.TextStyle(fontSize: 12),
                     ),
                     pw.SizedBox(height: 6),
@@ -130,7 +132,7 @@ class ApiService {
                       ),
                     ),
                     pw.Text(
-                      entry["justification"],
+                      entry["Justification"],
                       style: const pw.TextStyle(fontSize: 12),
                     ),
                   ],
