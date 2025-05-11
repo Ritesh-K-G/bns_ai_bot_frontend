@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/message_bubble.dart';
@@ -107,8 +108,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       horizontal: 16.0, vertical: 10.0),
                   child: InkWell(
                     onTap: () {
+                      final now = DateTime.now();
+                      final formattedDate = DateFormat('dd_MMMM_yyyy_HH_mm_ss').format(now);
                       final newId =
-                          "chat_${DateTime.now().millisecondsSinceEpoch}";
+                          "chat_${formattedDate}";
                       chatProvider.switchChat(newId);
                       Navigator.pop(context);
                     },

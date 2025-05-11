@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 import 'dart:math';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/chat_message.dart';
 import 'package:pdf/pdf.dart';
@@ -8,54 +9,59 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:dio/dio.dart';
 
 class ApiService {
-  static Future<ChatMessage> sendMessage(String message) async {
-    await Future.delayed(const Duration(seconds: 1));
-    final Dio dio = Dio(
-      BaseOptions(
-        baseUrl: 'https://bns-ai-assistant.onrender.com'
-    ));
+  static Future<ChatMessage> sendMessage(
+      String message, List<Map<String, dynamic>> history) async {
+    try {
+      final Dio dio =
+          Dio(BaseOptions(baseUrl: 'https://bns-ai-assistant.onrender.com'));
 
-    Response response = await dio.post('/query', data: {
-      "history": [],
-      "query": message
-    });
+      Response response = await dio
+          .post('/query', data: {"history": history, "query": message});
 
-    print(response);
-
-    final isFile = response.data['type'] == "scenario";
-    if (isFile) {
-      if (kIsWeb) {
-        return ChatMessage(
-          message: 'file:web_mock_file.txt',
-          isUser: false,
-          content: ''
-        );
-      } else {
-        final results = response.data['results'];
-        final file = await _generateMockFile(List<Map<String, dynamic>>.from(results));
-        String content = "Predicted Sections: \n";
-        for (var section in results) {
-          content = content + section['Section Title'] + '\n';
+      final isFile = response.data['type'] == "scenario";
+      if (isFile) {
+        if (kIsWeb) {
+          return ChatMessage(
+              message: 'file:web_mock_file.txt', isUser: false, content: '');
+        } else {
+          final List<Map<String, dynamic>> results =
+              List<Map<String, dynamic>>.from(response.data['results']);
+          if (results.isEmpty) {
+            return ChatMessage(
+                message: "Please clarify more about your scenario",
+                isUser: false,
+                content: '');
+          }
+          final file = await _generateMockFile(results);
+          String content = "Predicted Sections: \n";
+          for (var section in results) {
+            content += section['Section Title'] + '\n';
+          }
+          return ChatMessage(
+              message: 'file:${file.path}', isUser: false, content: content);
         }
+      } else {
         return ChatMessage(
-            message: 'file:${file.path}',
+            message: response.data['results'],
             isUser: false,
-            content: content
-        );
+            content: response.data['results']);
       }
-    }
-    else {
+    } catch (e) {
+      print("Error sending message: $e");
       return ChatMessage(
-        message: response.data['results'],
+        message:
+            'An error occurred while sending your message. Please try again after sometimes :)',
         isUser: false,
-        content: response.data['results']
+        content: '',
       );
     }
   }
 
   static Future<io.File> _generateMockFile(List<Map<String, dynamic>> data) async {
     final dir = await getTemporaryDirectory();
-    final file = io.File('${dir.path}/bns_report.pdf');
+    final now = DateTime.now();
+    final formattedDate = DateFormat('dd_MMMM_yyyy_HH_mm_ss').format(now);
+    final file = io.File('${dir.path}/bns_report_$formattedDate.pdf');
 
     final pdf = pw.Document();
 

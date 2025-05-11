@@ -136,13 +136,13 @@ class ChatProvider with ChangeNotifier {
           }
         ]
       });
-      if (i % 2 == 0) {
+      if (chatMessage.isUser) {
         history.last['role'] = "user";
       }
     }
 
     try {
-      final responseMessage = await ApiService.sendMessage(msg);
+      final responseMessage = await ApiService.sendMessage(msg, history);
       _addMessageToMemory(responseMessage);
     } catch (e) {
       final errorMessage = ChatMessage(message: "Error sending message: $e", isUser: false, content: '');
