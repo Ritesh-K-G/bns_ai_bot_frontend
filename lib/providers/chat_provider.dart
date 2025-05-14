@@ -6,7 +6,7 @@ import '../services/api_services.dart';
 
 class ChatProvider with ChangeNotifier {
   // Keys for SharedPreferences
-  static const String _chatIdsListKey = 'all_chat_id_list_test';
+  static const String _chatIdsListKey = 'all_chat_id_list_build';
   static const String _chatSessionPrefix = 'chat_session_';
 
   Map<String, List<ChatMessage>> _conversations = {};

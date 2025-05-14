@@ -1,3 +1,4 @@
+import 'package:bns_ai_bot/screens/credit_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -184,14 +185,33 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
-                      Icon(Icons.settings_outlined,
-                          color: iconColor.withOpacity(0.6)),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Settings',
-                        style: TextStyle(
-                            color: secondaryTextColor.withOpacity(0.8)),
-                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CreditScreen()),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.adb_sharp, color: iconColor.withOpacity(0.6)),
+                                const SizedBox(width: 16),
+                                Text(
+                                  'Credits',
+                                  style: TextStyle(
+                                    color: secondaryTextColor.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),
