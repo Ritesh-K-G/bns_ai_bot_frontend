@@ -1,16 +1,17 @@
 import 'dart:convert'; // Required for jsonEncode and jsonDecode
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat_message.dart';
 import '../services/api_services.dart';
 
 class ChatProvider with ChangeNotifier {
   // Keys for SharedPreferences
-  static const String _chatIdsListKey = 'all_chat_ids_list';
-  static const String _chatSessionPrefix = 'chat_session_'; // Prefix for each chat's data
+  static const String _chatIdsListKey = 'all_chat_id_list_build';
+  static const String _chatSessionPrefix = 'chat_session_';
 
   Map<String, List<ChatMessage>> _conversations = {};
-  String _currentChatId = 'default'; // Default initial chat ID
+  String _currentChatId = 'default';
   bool _isLoading = false;
   SharedPreferences? _prefsInstance;
 
@@ -22,21 +23,18 @@ class ChatProvider with ChangeNotifier {
     _prefsInstance = await SharedPreferences.getInstance();
     await _loadAllConversations();
 
-    // Ensure a default chat exists if none were loaded or the current ID is invalid
     if (_conversations.isEmpty) {
       _conversations['default'] = [];
       _currentChatId = 'default';
-      await _saveChatSession(_currentChatId); // Save the new empty default chat
-      await _updateChatIdsListInPrefs();      // Update the list of overall chat IDs
+      await _saveChatSession(_currentChatId);
+      await _updateChatIdsListInPrefs();
     } else if (!_conversations.containsKey(_currentChatId)) {
-      // If currentChatId (e.g. 'default' from declaration) isn't in loaded chats, pick the first one
       _currentChatId = _conversations.keys.first;
     }
     // A final fallback if _currentChatId is still somehow not in _conversations
     if (!_conversations.containsKey(_currentChatId)) {
       _conversations['default'] = [];
       _currentChatId = 'default';
-      // Check if it was actually missing from prefs before saving again
       if (_prefsInstance?.getStringList(_chatIdsListKey)?.contains(_currentChatId) != true) {
         await _saveChatSession(_currentChatId);
         await _updateChatIdsListInPrefs();
@@ -81,7 +79,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Saves the messages for a specific chat ID
   Future<void> _saveChatSession(String chatId) async {
     if (_prefsInstance == null || !_conversations.containsKey(chatId)) return;
 
@@ -91,20 +88,17 @@ class ChatProvider with ChangeNotifier {
     await _prefsInstance!.setString(_chatSessionPrefix + chatId, encodedMessages);
   }
 
-  // Updates the list of all known chat IDs in SharedPreferences
   Future<void> _updateChatIdsListInPrefs() async {
     if (_prefsInstance == null) return;
     final List<String> allChatIds = _conversations.keys.toList();
     await _prefsInstance!.setStringList(_chatIdsListKey, allChatIds);
   }
 
-  // --- Getters ---
   List<ChatMessage> get messages => _conversations[_currentChatId] ?? [];
   List<String> get chatIds => _conversations.keys.toList();
   String get currentChatId => _currentChatId;
   bool get isLoading => _isLoading;
 
-  // --- Public Methods ---
   void switchChat(String chatId) {
     _currentChatId = chatId;
     bool isNewChat = false;
@@ -121,24 +115,38 @@ class ChatProvider with ChangeNotifier {
   }
 
   void _addMessageToMemory(ChatMessage message) {
-    // Ensure the list for the current chat ID exists
     _conversations.putIfAbsent(_currentChatId, () => <ChatMessage>[]);
     _conversations[_currentChatId]!.add(message);
   }
 
   Future<void> sendMessage(String msg) async {
-    final userMessage = ChatMessage(message: msg, isUser: true);
+    final userMessage = ChatMessage(message: msg, isUser: true, content: '');
     _addMessageToMemory(userMessage);
 
     _isLoading = true;
     notifyListeners();
-    await _saveChatSession(_currentChatId); // Persist changes for the current chat
+    await _saveChatSession(_currentChatId);
+    List<Map<String, dynamic>> history = [];
+    for (int i = 0; i < _conversations[_currentChatId]!.length; i++) {
+      ChatMessage chatMessage = _conversations[_currentChatId]![i];
+      history.add({
+        "role": "model",
+        "parts": [
+          {
+            "text": chatMessage.content
+          }
+        ]
+      });
+      if (chatMessage.isUser) {
+        history.last['role'] = "user";
+      }
+    }
 
     try {
-      final responseMessage = await ApiService.sendMessage(msg); // This returns a ChatMessage
+      final responseMessage = await ApiService.sendMessage(msg, history);
       _addMessageToMemory(responseMessage);
     } catch (e) {
-      final errorMessage = ChatMessage(message: "Error sending message: $e", isUser: false);
+      final errorMessage = ChatMessage(message: "Error sending message: $e", isUser: false, content: '');
       _addMessageToMemory(errorMessage);
       debugPrint("ApiService Error: $e");
     } finally {

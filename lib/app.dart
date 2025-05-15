@@ -12,7 +12,7 @@ class ChatApp extends StatelessWidget {
       create: (_) => ChatProvider(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'ChatGPT Clone',
+        title: 'Nyay Report',
         theme: ThemeData(
           brightness: Brightness.light,
           primarySwatch: Colors.indigo,

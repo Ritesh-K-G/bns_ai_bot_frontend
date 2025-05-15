@@ -1,4 +1,6 @@
+import 'package:bns_ai_bot/screens/credit_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/message_bubble.dart';
@@ -107,8 +109,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       horizontal: 16.0, vertical: 10.0),
                   child: InkWell(
                     onTap: () {
+                      final now = DateTime.now();
+                      final formattedDate = DateFormat('dd_MMMM_yyyy_HH_mm_ss').format(now);
                       final newId =
-                          "chat_${DateTime.now().millisecondsSinceEpoch}";
+                          "chat_$formattedDate";
                       chatProvider.switchChat(newId);
                       Navigator.pop(context);
                     },
@@ -147,12 +151,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                           child: Row(
                             children: [
-                              Icon(Icons.chat_bubble_outline,
-                                  color: iconColor.withOpacity(0.6)),
+                              Icon(Icons.chat_bubble_outline, color: iconColor.withOpacity(0.6)),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
@@ -162,11 +164,49 @@ class _ChatScreenState extends State<ChatScreen> {
                                     color: isSelected
                                         ? primaryTextColor.withOpacity(0.87)
                                         : secondaryTextColor.withOpacity(0.6),
-                                    fontWeight: isSelected
-                                        ? FontWeight.w500
-                                        : FontWeight.normal,
+                                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                                   ),
                                   overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      backgroundColor: const Color(0xFF1E1E1E),
+                                      titleTextStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                                      contentTextStyle: const TextStyle(color: Colors.white70, fontSize: 14),
+                                      title: const Text("Delete Chat"),
+                                      content: const Text("Are you sure you want to delete this chat?"),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, false),
+                                          child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, true),
+                                          child: const Text("Delete", style: TextStyle(color: Colors.redAccent)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true) {
+                                    await chatProvider.deleteChat(id);
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withOpacity(0.05),
+                                  ),
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    size: 20,
+                                    color: Colors.redAccent.withOpacity(0.9),
+                                  ),
                                 ),
                               ),
                             ],
@@ -181,14 +221,33 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
-                      Icon(Icons.settings_outlined,
-                          color: iconColor.withOpacity(0.6)),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Settings',
-                        style: TextStyle(
-                            color: secondaryTextColor.withOpacity(0.8)),
-                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CreditScreen()),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.adb_sharp, color: iconColor.withOpacity(0.6)),
+                                const SizedBox(width: 16),
+                                Text(
+                                  'Credits',
+                                  style: TextStyle(
+                                    color: secondaryTextColor.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),
