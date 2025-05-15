@@ -16,23 +16,27 @@ class CreditScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: const [
             CreditCard(
               name: 'Prof. Vrijendra Singh',
-              role: 'Project Guide',
-              description:
-              'He proposed this project and gave invaluable guidance throughout the development process.',
+              role: 'Professor, IIIT Allahabad',
+              description: '''
+Provided invaluable guidance and expertise in shaping the project's design and development. 
+Assisted with validating medical datasets and ensured that the algorithms met academic standards. 
+Offered continuous feedback and supervised the overall project progress.''',
               imagePath: 'assets/Prof_Vrij_Sir.png',
             ),
             SizedBox(height: 20),
             CreditCard(
               name: 'Ashok Yadav',
-              role: 'Teaching Assistant',
-              description:
-              'He mentored the project and provided invaluable support to shape it into its final form.',
+              role: 'PhD Student, IIIT Allahabad',
+              description: '''
+Assisted with the technical implementation and debugging of the project. 
+Provided crucial support in understanding complex algorithms, reviewing code, and ensuring that the project met all technical requirements. 
+Offered guidance during the development process and helped troubleshoot key issues.''',
               imagePath: 'assets/Ashok_Sir.png',
             ),
           ],
@@ -88,20 +92,31 @@ class CreditCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(role,
-                    style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic)),
+                Text(
+                  role,
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text(description,
-                    style: TextStyle(color: Colors.grey[300], fontSize: 13)),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.grey[300],
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
           ),

@@ -6,7 +6,9 @@ import '../providers/chat_provider.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
 import 'package:open_file/open_file.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform;
 import '../widgets/typing_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -21,9 +23,18 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
 
   void _launchFile(String path) async {
-    final result = await OpenFile.open(path);
-    if (result.type != ResultType.done) {
-      debugPrint('Error opening file: ${result.message}');
+    if (kIsWeb) {
+      final uri = Uri.parse(path); // Ensure this is a valid public or blob URL
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        debugPrint('Could not launch $path');
+      }
+    } else {
+      final result = await OpenFile.open(path);
+      if (result.type != ResultType.done) {
+        debugPrint('Error opening file: ${result.message}');
+      }
     }
   }
 
